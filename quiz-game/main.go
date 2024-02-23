@@ -13,6 +13,8 @@ type Question struct {
 }
 
 func main() {
+	correctCount := 0
+
 	file, err := os.Open("problems.csv")
 	if err != nil {
 		log.Fatal(err)
@@ -35,4 +37,16 @@ func main() {
 
 		questions = append(questions, data)
 	}
+
+	for _, question := range questions {
+		fmt.Print(question.question, "=")
+		var s string
+		fmt.Scanf("%s", &s)
+
+		if s == question.answer {
+			correctCount++
+		}
+	}
+
+	fmt.Println("Correct:", correctCount)
 }
