@@ -5,11 +5,19 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 type Question struct {
 	question string
 	answer   string
+}
+
+func askQuestion(question Question, inputCh chan string) {
+	fmt.Print(question.question, "=")
+	input := ""
+	fmt.Scanf("%s", &input)
+	inputCh <- input
 }
 
 func main() {
@@ -23,7 +31,7 @@ func main() {
 
 	records, err := csv.NewReader(file).ReadAll()
 	if err != nil {
-		fmt.Println("Please check if there exist problems.csv in the same folder.")
+		fmt.Println(err)
 		return
 	}
 
@@ -38,15 +46,24 @@ func main() {
 		questions = append(questions, data)
 	}
 
+	timer := time.NewTimer(5 * time.Second)
 	for _, question := range questions {
-		fmt.Print(question.question, "=")
-		var s string
-		fmt.Scanf("%s", &s)
+		timer.Reset(5 * time.Second)
+		inputCh := make(chan string)
 
-		if s == question.answer {
-			correctCount++
+		go askQuestion(question, inputCh)
+
+		select {
+		case <-timer.C:
+			fmt.Println("\ntime up")
+			return
+		case input := <-inputCh:
+			if input == question.answer {
+				correctCount++
+			}
 		}
+
 	}
 
-	fmt.Println("Correct:", correctCount)
+	fmt.Println("Correct:", correctCount, "/ 12")
 }
