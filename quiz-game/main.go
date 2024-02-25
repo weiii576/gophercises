@@ -13,6 +13,34 @@ type Question struct {
 	answer   string
 }
 
+func loadQuestions() ([]Question, error) {
+	var questions []Question
+
+	file, err := os.Open("problems.csv")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	records, err := csv.NewReader(file).ReadAll()
+
+	if err != nil {
+		return questions, err
+	}
+
+	for _, record := range records {
+		// answerInt, _ := strconv.Atoi(record[1])
+		data := Question{
+			question: record[0],
+			answer:   record[1],
+		}
+
+		questions = append(questions, data)
+	}
+
+	return questions, nil
+}
+
 func askQuestion(question Question, inputCh chan string) {
 	fmt.Print(question.question, "=")
 	input := ""
@@ -23,27 +51,10 @@ func askQuestion(question Question, inputCh chan string) {
 func main() {
 	correctCount := 0
 
-	file, err := os.Open("problems.csv")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
+	questions, err := loadQuestions()
 
-	records, err := csv.NewReader(file).ReadAll()
 	if err != nil {
 		fmt.Println(err)
-		return
-	}
-
-	var questions []Question
-	for _, record := range records {
-		// answerInt, _ := strconv.Atoi(record[1])
-		data := Question{
-			question: record[0],
-			answer:   record[1],
-		}
-
-		questions = append(questions, data)
 	}
 
 	timer := time.NewTimer(5 * time.Second)
@@ -55,7 +66,7 @@ func main() {
 
 		select {
 		case <-timer.C:
-			fmt.Println("\ntime up")
+			fmt.Println("\ntimes up")
 			return
 		case input := <-inputCh:
 			if input == question.answer {
