@@ -57,15 +57,13 @@ func main() {
 		fmt.Println(err)
 	}
 
-	timer := time.NewTimer(5 * time.Second)
 	for _, question := range questions {
-		timer.Reset(5 * time.Second)
 		inputCh := make(chan string)
 
 		go askQuestion(question, inputCh)
 
 		select {
-		case <-timer.C:
+		case <-time.After(10 * time.Second):
 			fmt.Println("\ntimes up")
 			return
 		case input := <-inputCh:
