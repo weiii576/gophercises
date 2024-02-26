@@ -50,16 +50,14 @@ func askQuestion(question Question, inputCh chan string) {
 
 func main() {
 	correctCount := 0
+	inputCh := make(chan string)
 
 	questions, err := loadQuestions()
-
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	for _, question := range questions {
-		inputCh := make(chan string)
-
 		go askQuestion(question, inputCh)
 
 		select {
@@ -67,6 +65,7 @@ func main() {
 			fmt.Println("\ntimes up")
 			return
 		case input := <-inputCh:
+			fmt.Print("\033[H\033[2J")
 			if input == question.answer {
 				correctCount++
 			}
