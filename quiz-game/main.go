@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -13,19 +13,24 @@ type Question struct {
 	answer   string
 }
 
-func loadQuestions() ([]Question, error) {
+func exit(msg string) {
+	fmt.Println(msg)
+	os.Exit(1)
+}
+
+func loadQuestions(csvFilename *string) []Question {
 	var questions []Question
 
 	file, err := os.Open("problems.csv")
 	if err != nil {
-		log.Fatal(err)
+		exit(fmt.Sprintf("Failed to open the CSV file: %s\n", *csvFilename))
 	}
 	defer file.Close()
 
 	records, err := csv.NewReader(file).ReadAll()
 
 	if err != nil {
-		return questions, err
+		exit("Failed to parse the provided CSV file.")
 	}
 
 	for _, record := range records {
@@ -38,7 +43,7 @@ func loadQuestions() ([]Question, error) {
 		questions = append(questions, data)
 	}
 
-	return questions, nil
+	return questions
 }
 
 func askQuestion(question Question, inputCh chan string) {
@@ -51,11 +56,9 @@ func askQuestion(question Question, inputCh chan string) {
 func main() {
 	correctCount := 0
 	inputCh := make(chan string)
+	csvFilename := flag.String("csv", "problems.csv", "a csv file in the format of 'question,answer'")
 
-	questions, err := loadQuestions()
-	if err != nil {
-		fmt.Println(err)
-	}
+	questions := loadQuestions(csvFilename)
 
 	for _, question := range questions {
 		go askQuestion(question, inputCh)
