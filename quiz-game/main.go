@@ -57,14 +57,18 @@ func main() {
 	correctCount := 0
 	inputCh := make(chan string)
 	csvFilename := flag.String("csv", "problems.csv", "a csv file in the format of 'question,answer'")
+	timeLimit := flag.Int("limit", 30, "the time limit for the quiz in seconds")
+	flag.Parse()
 
 	questions := loadQuestions(csvFilename)
+
+	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
 
 	for _, question := range questions {
 		go askQuestion(question, inputCh)
 
 		select {
-		case <-time.After(10 * time.Second):
+		case <-timer.C:
 			fmt.Println("\ntimes up")
 			return
 		case input := <-inputCh:
